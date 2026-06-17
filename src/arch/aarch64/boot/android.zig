@@ -18,11 +18,10 @@ export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
         \\ add x9, x9, :lo12:__bss_start
         \\ adrp x10, __bss_end
         \\ add x10, x10, :lo12:__bss_end
-        \\ mov x8, #-1
         \\2:
         \\ cmp x9,x10
         \\ b.hs 3f
-        \\ str x8, [x9], #8
+        \\ str xzr, [x9], #8
         \\ b 2b
         \\3:
         \\ bl   main
