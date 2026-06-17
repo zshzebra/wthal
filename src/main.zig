@@ -2,6 +2,6 @@ const std = @import("std");
 
 // TODO: Some real payload
 pub fn kernel_main() void {
-    const qemu_serial: *u8 = @ptrFromInt(0x900_0000);
-    qemu_serial.* = 'H';
+    const fb: [*]volatile u32 = @ptrFromInt(0x9c400000);
+    @memset(fb[0 .. 1080 * 2280], 0xffff0000);
 }
