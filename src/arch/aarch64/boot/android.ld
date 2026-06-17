@@ -7,7 +7,9 @@ SECTIONS
     .eh_frame_hdr : { *(.eh_frame_hdr) }
     .eh_frame     : { *(.eh_frame) }
     .data : { *(.data data.*) }
-    .bss : { *(.bss bss.*) }
+    . = ALIGN(8); __bss_start = .;
+    .bss : { *(.bss .bss.*) *(COMMON) }
+    . = ALIGN(8); __bss_end = .;
     . = . + 0x4000;
     __stack_top = .;
     _image_size = .;
