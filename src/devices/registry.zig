@@ -31,6 +31,6 @@ pub const Devices = enum {
 
 pub fn getDevice(device: Devices) Device {
     return switch (device) {
-        .flame => @import("flame/device.zig").device,
+        .flame => @import("flame/flame.zig").device,
     };
 }
