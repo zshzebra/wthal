@@ -20,6 +20,11 @@
           packages = with pkgs; [
             zig
             zls
+            dtc
+
+            # Android deps
+            lz4
+            android-tools
           ];
         };
       }
