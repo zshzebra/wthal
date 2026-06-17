@@ -24,6 +24,10 @@ pub fn build(b: *std.Build) error{DeviceMustBeProvided}!void {
         @tagName(arch),
         @tagName(device.device_target.boot),
     });
+    const linker_script = b.fmt("src/arch/{s}/boot/{s}.ld", .{
+        @tagName(arch),
+        @tagName(device.device_target.boot),
+    });
 
     const kernel = b.addExecutable(.{
         .name = "wthal",
@@ -35,10 +39,7 @@ pub fn build(b: *std.Build) error{DeviceMustBeProvided}!void {
     });
     kernel.root_module.addImport("kernel", kernel_module);
     kernel.root_module.addImport("config", config_module);
-    kernel.setLinkerScript(b.path(b.fmt("src/arch/{s}/boot/{s}.ld", .{
-        @tagName(arch),
-        @tagName(device.device_target.boot),
-    })));
+    kernel.setLinkerScript(b.path(linker_script));
 
     const out = switch (device.device_target.boot) {
         .android => |cfg| package.android(
