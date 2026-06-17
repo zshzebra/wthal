@@ -30,6 +30,6 @@ export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
     );
 }
 
-export fn main() void {
-    kernel.kernel_main();
+export fn main(dt_addr: *const [4]u8) void {
+    kernel.kernel_main(dt_addr);
 }
