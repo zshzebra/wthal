@@ -1,4 +1,5 @@
 const kernel = @import("kernel");
+const devicetree = @import("DeviceTree");
 
 export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
     asm volatile (
@@ -30,6 +31,6 @@ export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
     );
 }
 
-export fn main(dt_addr: *const [4]u8) void {
+export fn main(dt_addr: [*]const u8) void {
     kernel.kernel_main(dt_addr);
 }

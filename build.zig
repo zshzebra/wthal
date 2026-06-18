@@ -7,10 +7,12 @@ pub fn build(b: *std.Build) error{DeviceMustBeProvided}!void {
     const device_opt = b.option(registry.Devices, "device", "The target device") orelse .flame;
     const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseSmall });
 
+    const devicetree_dep = b.dependency("devicetree", .{});
     const kernel_module = b.addModule("kernel", .{
         .root_source_file = b.path("src/main.zig"),
         .optimize = optimize,
     });
+    kernel_module.addImport("DeviceTree", devicetree_dep.module("DeviceTree"));
 
     const config_module = b.addModule("config", .{
         .root_source_file = b.path("src/devices/registry.zig"),
@@ -39,6 +41,7 @@ pub fn build(b: *std.Build) error{DeviceMustBeProvided}!void {
     });
     kernel.root_module.addImport("kernel", kernel_module);
     kernel.root_module.addImport("config", config_module);
+    kernel.root_module.addImport("DeviceTree", devicetree_dep.module("DeviceTree"));
     kernel.setLinkerScript(b.path(linker_script));
 
     const out = switch (device.device_target.boot) {
