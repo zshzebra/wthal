@@ -17,7 +17,7 @@ pub const device: registry.Device = .{
         },
         .boot = .{ .android = .{
             .header_version = 2,
-            .partition_size = 0x4000000,
+            .partition_size = 0x20000,
             .cmdline = "",
             .pagesize = 4096,
         } },

@@ -1,6 +1,7 @@
 ENTRY(_start)
 SECTIONS
 {
+    _image_top = .;
     .text.boot : { KEEP(*(.text.boot)) }
     .text : { *(.text .text.*) }
     .rodata : { *(.rodata .rodata.*) }
@@ -12,5 +13,5 @@ SECTIONS
     . = ALIGN(8); __bss_end = .;
     . = . + 0x4000;
     __stack_top = .;
-    _image_size = .;
+    _image_size = . - _image_top;
 }
