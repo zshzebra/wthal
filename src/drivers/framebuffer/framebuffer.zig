@@ -28,7 +28,7 @@ pub const Rgb = struct {
     }
 };
 
-fn Color(comptime k: ColorKind) type {
+pub fn Color(comptime k: ColorKind) type {
     return switch (k) {
         .rgb => Rgb,
     };
@@ -45,6 +45,14 @@ pub fn Framebuffer(comptime kind: ColorKind) type {
 
         pub fn clear(self: *Self, color: ColorType.Value) void {
             @memset(self.buffer, ColorType.pack(self.mode.color_format, color));
+        }
+
+        pub fn setPixel(self: *Self, x: u64, y: u64, color: ColorType.Value) error{OutOfBounds}!void {
+            if (x >= self.mode.width or y >= self.mode.height) return error.OutOfBounds;
+
+            const stride = self.mode.pitch / @sizeOf(u32);
+            const index: usize = @intCast(y * stride + x);
+            self.buffer[index] = ColorType.pack(self.mode.color_format, color);
         }
     };
 }

@@ -1,17 +1,22 @@
 const std = @import("std");
 const devicetree = @import("DeviceTree");
-const fb = @import("drivers/fb/fb.zig");
+const framebuffer = @import("drivers/framebuffer/framebuffer.zig");
+const fbcon = @import("drivers/fbcon/fbcon.zig");
 
 var should_be_zero: u32 = 0;
 
 // TODO: Some real payload
 pub fn kernel_main(dt_addr: [*]const u8) void {
-    var framebuffer: fb.Framebuffer(.rgb) = .{
-        .buffer = @as([*]volatile u32, @ptrFromInt(0x9c400000))[0 .. 2280 * 1080 * 4],
+    const width = 1080;
+    const height = 2280;
+    const pitch = width * @sizeOf(u32);
+
+    var fb: framebuffer.Framebuffer(.rgb) = .{
+        .buffer = @as([*]volatile u32, @ptrFromInt(0x9c400000))[0 .. width * height],
         .mode = .{
-            .width = 1080,
-            .height = 2280,
-            .pitch = 1080 * 4,
+            .width = width,
+            .height = height,
+            .pitch = pitch,
             .bpp = 32,
             .color_format = .{
                 .red_mask_size = 8,
@@ -23,17 +28,20 @@ pub fn kernel_main(dt_addr: [*]const u8) void {
             },
         },
     };
-    framebuffer.clear(0x1e1e2e);
+    fb.clear(0x1e1e2e);
 
     if (@as(*volatile u32, &should_be_zero).* != 0) {}
 
     const device_tree = devicetree.fromPtr(@alignCast(dt_addr)) catch {
-        framebuffer.clear(0xf38ba8);
+        fb.clear(0xf38ba8);
         while (true) {
             asm volatile ("wfi");
         }
     };
 
     _ = device_tree;
-    framebuffer.clear(0xa6e3a1);
+    fb.clear(0xa6e3a1);
+
+    const con = fbcon.FbCon(.rgb).init(&fb);
+    // TODO: USE
 }
