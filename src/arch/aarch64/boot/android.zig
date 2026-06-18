@@ -25,6 +25,27 @@ export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
         \\ str xzr, [x9], #8
         \\ b 2b
         \\3:
+        \\ adrp x11, _image_top
+        \\ add  x11, x11, :lo12:_image_top
+        \\ adrp x12, __rela_start
+        \\ add  x12, x12, :lo12:__rela_start
+        \\ adrp x13, __rela_end
+        \\ add  x13, x13, :lo12:__rela_end
+        \\5:
+        \\ cmp x12, x13
+        \\ b.hs 6f
+        \\ ldr x14, [x12]
+        \\ ldr x15, [x12, #8]
+        \\ ldr x16, [x12, #16]
+        \\ add x12, x12, #24
+        \\ and x17, x15, #0xffffffff
+        \\ cmp x17, #0x403
+        \\ b.ne 5b
+        \\ add x14, x14, x11
+        \\ add x16, x16, x11
+        \\ str x16, [x14]
+        \\ b 5b
+        \\6:
         \\ bl   main
         \\4: wfe
         \\ b 4b

@@ -42,6 +42,6 @@ pub fn kernel_main(dt_addr: [*]const u8) void {
     _ = device_tree;
     fb.clear(0xa6e3a1);
 
-    const con = fbcon.FbCon(.rgb).init(&fb);
-    // TODO: USE
+    var con = fbcon.FbCon(.rgb).init(&fb, 3);
+    con.writer().writeAll("hello\n") catch {};
 }

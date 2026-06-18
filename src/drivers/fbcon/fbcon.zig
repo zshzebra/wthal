@@ -12,23 +12,27 @@ pub fn FbCon(comptime kind: framebuffer.ColorKind) type {
 
         font: *const psf.PSF1Header,
 
-        fg: ColorType,
-        bg: ColorType,
+        fg: ColorType.Value,
+        bg: ColorType.Value,
         rows: u64,
         cols: u64,
         cursor_row: u64,
         cursor_col: u64,
+        scale: u64,
 
         io_writer: std.Io.Writer,
 
-        pub fn init(fb: *Framebuffer) Self {
+        pub fn init(fb: *Framebuffer, scale: u64) Self {
             return .{
                 .fb = fb,
                 .font = psf.getFont(),
-                .rows = fb.mode.height / 16,
-                .cols = fb.mode.width / 8,
+                .fg = 0xcdd6f4,
+                .bg = 0x1e1e2e,
+                .rows = fb.mode.height / (16 * scale),
+                .cols = fb.mode.width / (8 * scale),
                 .cursor_row = 0,
                 .cursor_col = 0,
+                .scale = scale,
                 .io_writer = .{
                     .vtable = &.{
                         .drain = drain,
@@ -72,23 +76,46 @@ pub fn FbCon(comptime kind: framebuffer.ColorKind) type {
             }
         }
 
-        fn put_char(self: *Self, row: u64, col: u64, char: u8) !void {
-            const base_x = (self.fb.mode.width / self.rows) * row;
-            const base_y = (self.fb.mode.height / self.cols) * col;
+        fn put_char(self: *Self, char: u8) !void {
+            switch (char) {
+                '\n' => {
+                    self.newline();
+                    return;
+                },
+                '\r' => {
+                    self.cursor_col = 0;
+                    return;
+                },
+                else => {},
+            }
+
+            const base_x = self.cursor_col * 8 * self.scale;
+            const base_y = self.cursor_row * self.font.characterSize * self.scale;
             const glyph = psf.getGlyph(self.font, char);
             for (0..self.font.characterSize) |glyph_row| {
                 for (0..8) |x| {
-                    const color: ColorType = if (((glyph[glyph_row] >> @intCast(x)) & 1) == 1) self.fg else self.bg;
-                    try self.fb.setPixel(base_x + x, base_y + glyph_row, color);
+                    const bit = 7 - x;
+                    const color = if (((glyph[glyph_row] >> @intCast(bit)) & 1) == 1) self.fg else self.bg;
+                    for (0..self.scale) |sy| {
+                        for (0..self.scale) |sx| {
+                            try self.fb.setPixel(base_x + x * self.scale + sx, base_y + glyph_row * self.scale + sy, color);
+                        }
+                    }
                 }
             }
+
             self.cursor_col += 1;
-            if (self.cursor_row > self.rows) {
-                self.cursor_col = 0;
-                self.cursor_col += 1;
-                if (self.cursor_col > self.cols) {
-                    // TODO: Scroll
-                }
+            if (self.cursor_col >= self.cols) {
+                self.newline();
+            }
+        }
+
+        fn newline(self: *Self) void {
+            self.cursor_col = 0;
+            self.cursor_row += 1;
+            if (self.cursor_row >= self.rows) {
+                self.cursor_row = self.rows - 1;
+                // TODO: Scroll
             }
         }
     };

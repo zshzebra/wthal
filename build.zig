@@ -37,8 +37,10 @@ pub fn build(b: *std.Build) error{DeviceMustBeProvided}!void {
             .root_source_file = b.path(root),
             .target = b.resolveTargetQuery(device.device_target.target_query),
             .optimize = optimize,
+            .pic = true,
         }),
     });
+    kernel.pie = true;
     kernel.root_module.addImport("kernel", kernel_module);
     kernel.root_module.addImport("config", config_module);
     kernel.root_module.addImport("DeviceTree", devicetree_dep.module("DeviceTree"));

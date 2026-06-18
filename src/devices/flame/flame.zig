@@ -11,8 +11,6 @@ pub const device: registry.Device = .{
                 .abi = .none,
             };
             q.cpu_features_add.addFeature(@intFromEnum(Feature.strict_align));
-            q.cpu_features_sub.addFeature(@intFromEnum(Feature.neon));
-            q.cpu_features_sub.addFeature(@intFromEnum(Feature.fp_armv8));
             break :blk q;
         },
         .boot = .{ .android = .{
