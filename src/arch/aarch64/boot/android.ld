@@ -4,6 +4,10 @@ SECTIONS
     . = 0;
     _image_top = .;
     .text.boot : { KEEP(*(.text.boot)) }
+    . = ALIGN(2048);
+    .text.exceptions : {
+        KEEP(*(.text.exceptions))
+    }
     .text : { *(.text .text.*) }
     .rodata : { *(.rodata .rodata.*) }
     .data.rel.ro : { *(.data.rel.ro .data.rel.ro.*) }

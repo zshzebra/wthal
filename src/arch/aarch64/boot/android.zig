@@ -69,6 +69,57 @@ export fn _start() linksection(".text.boot") callconv(.naked) noreturn {
     );
 }
 
+comptime {
+    asm (
+        \\ .section .text.exceptions, "ax"
+        \\ .balign 2048
+        \\ .global exception_vectors
+        \\ exception_vectors:
+        \\
+        \\ .macro VECTOR kind
+        \\ .Lvector_slot\@:
+        \\     mov x0, #\kind
+        \\     b exception_entry
+        \\     .space 128 - (. - .Lvector_slot\@)
+        \\ .endm
+        \\
+        \\ VECTOR 0
+        \\ VECTOR 1
+        \\ VECTOR 2
+        \\ VECTOR 3
+        \\ VECTOR 4
+        \\ VECTOR 5
+        \\ VECTOR 6
+        \\ VECTOR 7
+        \\ VECTOR 8
+        \\ VECTOR 9
+        \\ VECTOR 10
+        \\ VECTOR 11
+        \\ VECTOR 12
+        \\ VECTOR 13
+        \\ VECTOR 14
+        \\ VECTOR 15
+    );
+}
+
+export fn exception_entry() callconv(.naked) noreturn {
+    asm volatile (
+        \\ b exception_panic
+    );
+}
+
+extern const exception_vectors: u8;
+
+pub fn install_exception_vectors() void {
+    asm volatile (
+        \\ msr vbar_el1, %[base]
+        \\ isb
+        :
+        : [base] "r" (&exception_vectors),
+        : .{ .memory = true });
+}
+
 export fn main(dt_addr: [*]const u8) void {
+    install_exception_vectors();
     kernel.kernel_main(dt_addr);
 }

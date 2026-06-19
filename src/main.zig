@@ -5,6 +5,35 @@ const fbcon = @import("drivers/fbcon/fbcon.zig");
 
 var should_be_zero: u32 = 0;
 
+export fn exception_panic() noreturn {
+    const width = 1080;
+    const height = 2280;
+    const pitch = width * @sizeOf(u32);
+
+    var fb: framebuffer.Framebuffer(.rgb) = .{
+        .buffer = @as([*]volatile u32, @ptrFromInt(0x9c400000))[0 .. width * height],
+        .mode = .{
+            .width = width,
+            .height = height,
+            .pitch = pitch,
+            .bpp = 32,
+            .color_format = .{
+                .red_mask_size = 8,
+                .red_mask_shift = 16,
+                .green_mask_size = 8,
+                .green_mask_shift = 8,
+                .blue_mask_size = 8,
+                .blue_mask_shift = 0,
+            },
+        },
+    };
+    fb.clear(0xff0000);
+
+    while (true) {
+        asm volatile ("wfi");
+    }
+}
+
 // TODO: Some real payload
 pub fn kernel_main(dt_addr: [*]const u8) void {
     const width = 1080;
@@ -44,4 +73,6 @@ pub fn kernel_main(dt_addr: [*]const u8) void {
 
     var con = fbcon.FbCon(.rgb).init(&fb, 3);
     con.writer().writeAll("hello\n") catch {};
+
+    asm volatile ("brk #0");
 }
